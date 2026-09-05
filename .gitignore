@@ -1,0 +1,41 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# next.js
+.next/
+out/
+build/
+dist/
+
+# testing
+coverage/
+
+# env
+.env
+.env.local
+.env.*.local
+# نسخة نصية من متغيّرات البيئة قد تحوي كلمة السر — لا تُرفع أبدًا
+env-local.txt
+
+# مخرجات المحادثة (لقطات شاشة وملفات مؤقتة)
+Claude outputs/
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# editors
+.idea/
+.vscode/*
+!.vscode/extensions.json

@@ -1,0 +1,23 @@
+{
+  "name": "elmagd",
+  "version": "0.1.0",
+  "private": true,
+  "description": "3D Elmagd — نسخة GitHub Pages + Supabase",
+  "workspaces": [
+    "apps/web",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@elmagd/web",
+    "build": "npm run build --workspace=@elmagd/web",
+    "start": "npm run preview --workspace=@elmagd/web",
+    "lint": "npm run lint --workspace=@elmagd/web",
+    "typecheck": "npm run typecheck --workspace=@elmagd/web",
+    "test": "npm run test --workspace=@elmagd/web",
+    "preview": "npm run preview --workspace=@elmagd/web",
+    "seed:sql": "node --experimental-strip-types --no-warnings scripts/generate-seed-sql.ts"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

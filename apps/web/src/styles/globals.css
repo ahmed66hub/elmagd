@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* ============================================================
+   الوضع الداكن يُدار بـ data-theme على عنصر <html>
+   حتى تتحكم فيه لوحة التحكم وزر التبديل معًا.
+   ============================================================ */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ============================================================
+   design tokens — النسخة الفاتحة هي الأساس،
+   والقيم نفسها تُستبدل في [data-theme="dark"] بالأسفل.
+   كل utility في Tailwind يقرأ من هذه المتغيرات،
+   لذلك تغيير اللون من لوحة التحكم ينعكس فورًا بدون إعادة build.
+   ============================================================ */
+@theme {
+  /* الأسطح */
+  --color-paper: #eff3f7;
+  --color-card: #ffffff;
+  --color-card-2: #f6f9fc;
+  --color-sunk: #e7edf3;
+
+  /* الحدود */
+  --color-edge: #d8e1ea;
+  --color-edge-2: #becedc;
+
+  /* النصوص */
+  --color-ink: #0c1a25;
+  --color-body: #4b5d6d;
+  --color-soft: #7b8d9c;
+
+  /* الهوية */
+  --color-brand: #0b6fb8;
+  --color-brand-2: #1189d8;
+  --color-brand-soft: rgb(11 111 184 / 0.09);
+  --color-accent: #e4622a;
+
+  /* الحالات */
+  --color-ok: #17a45e;
+  --color-danger: #e0554e;
+
+  /* الخطوط — ملفاتها مستضافة داخل المشروع وتُستورد في app/layout.tsx */
+  --font-display: "Alexandria Variable", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  /* الزوايا */
+  --radius-card: 6px;
+
+  /* الحركات */
+  --animate-fade-up: fade-up 0.38s ease both;
+  --animate-led: led 2.2s infinite;
+}
+
+[data-theme="dark"] {
+  --color-paper: #08131c;
+  --color-card: #0e1e2b;
+  --color-card-2: #122534;
+  --color-sunk: #0a1925;
+
+  --color-edge: #1c3346;
+  --color-edge-2: #2a4a63;
+
+  --color-ink: #e9f2f9;
+  --color-body: #a6baca;
+  --color-soft: #7690a4;
+
+  --color-brand-soft: rgb(17 137 216 / 0.14);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes led {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(23 164 94 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgb(23 164 94 / 0);
+  }
+}
+
+/* ============================================================
+   الأساسيات
+   ============================================================ */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-body);
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.85;
+    min-height: 100vh;
+    margin: 0;
+    /* شبكة الورق الهندسي خلف كل الصفحات */
+    background-image:
+      linear-gradient(var(--color-edge) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-edge) 1px, transparent 1px);
+    background-size: 38px 38px;
+    background-position: center top;
+  }
+
+  [data-theme="dark"] body {
+    background-image:
+      linear-gradient(rgb(42 74 99 / 0.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(42 74 99 / 0.35) 1px, transparent 1px);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+/* ============================================================
+   utilities مخصّصة
+   ============================================================ */
+
+/** أرقام ونصوص لاتينية داخل صفحة RTL بدون انقلاب في الترتيب. */
+@utility ltr-num {
+  font-family: var(--font-mono);
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/** شريط تمرير رفيع يتماشى مع ألوان الثيم. */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-edge-2) transparent;
+}
+
+/** مقبض السلايدر — لا يمكن تنسيقه بـ utilities وحدها. */
+@utility range-brand {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 100px;
+  background: var(--color-sunk);
+  outline: none;
+  cursor: pointer;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    border: 3px solid var(--color-card);
+    box-shadow: 0 0 0 1px var(--color-edge-2);
+    cursor: pointer;
+  }
+
+  &::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    border: 3px solid var(--color-card);
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,109 @@
+name: نشر الموقع على GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# نشرة واحدة في كل مرة، والأحدث يلغي الأقدم.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: بناء الموقع
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: جلب الكود
+        uses: actions/checkout@v4
+
+      - name: تجهيز Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: تحديد مسار الموقع داخل النطاق
+        id: base
+        env:
+          # اضبط المتغيّر SITE_BASE_PATH في إعدادات المستودع فقط عند الحاجة:
+          #   none         → الموقع في جذر النطاق (نطاق خاص، أو مستودع <user>.github.io)
+          #   /اسم-المسار  → مسار مخصّص
+          # وبدونه يُحسب تلقائيًا من اسم المستودع.
+          OVERRIDE: ${{ vars.SITE_BASE_PATH }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ "$OVERRIDE" = "none" ]; then
+            BASE=""
+          elif [ -n "$OVERRIDE" ]; then
+            BASE="$OVERRIDE"
+          elif [ "$(echo "$REPO_NAME" | tr '[:upper:]' '[:lower:]')" = "$(echo "$OWNER" | tr '[:upper:]' '[:lower:]').github.io" ]; then
+            BASE=""
+          else
+            BASE="/$REPO_NAME"
+          fi
+          echo "path=$BASE" >> "$GITHUB_OUTPUT"
+          echo "مسار الموقع: '${BASE:-/}'"
+
+      - name: التأكد من ضبط مفاتيح Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::مفاتيح Supabase غير مضبوطة في أسرار المستودع."
+            echo "::error::Settings → Secrets and variables → Actions → New repository secret"
+            echo "::error::أضِف NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY."
+            echo "::error::بدونهما سيُنشر موقع لا يقرأ من قاعدة البيانات ولا تعمل فيه لوحة التحكم."
+            exit 1
+          fi
+
+      - name: تثبيت الحزم
+        run: npm ci
+
+      - name: فحص الأنواع
+        run: npm run typecheck
+
+      - name: فحص الكود
+        run: npm run lint
+
+      - name: الاختبارات
+        run: npm run test
+
+      - name: البناء
+        env:
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.base.outputs.path }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_OWNER_EMAIL: ${{ vars.OWNER_EMAIL }}
+        run: npm run build
+
+      - name: تجهيز Pages
+        uses: actions/configure-pages@v5
+
+      - name: رفع ملفات الموقع
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/out
+
+  deploy:
+    name: النشر
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: النشر على GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
